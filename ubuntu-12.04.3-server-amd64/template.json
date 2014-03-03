@@ -1,0 +1,103 @@
+{
+  "builders": [
+    {
+      "iso_url": "http://releases.ubuntu.com/12.04/ubuntu-12.04.3-server-amd64.iso",
+      "disk_size": 10140,
+      "type": "virtualbox",
+      "ssh_username": "vagrant",
+      "boot_wait": "4s",
+      "http_directory": "http",
+      "guest_os_type": "Ubuntu_64",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "shutdown_command": "echo 'shutdown -P now' > shutdown.sh; echo 'vagrant'|sudo -S sh 'shutdown.sh'",
+      "ssh_wait_timeout": "10000s",
+      "ssh_password": "vagrant",
+      "iso_checksum_type": "md5",
+      "iso_checksum": "2cbe868812a871242cdcdd8f2fd6feb9",
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "512"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "1"
+        ]
+      ],
+      "virtualbox_version_file": ".vbox_version",
+      "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us <wait>",
+        "hostname={{ .Name }} <wait>",
+        "fb=false debconf/frontend=noninteractive <wait>",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/variant=USA console-setup/ask_detect=false <wait>",
+        "initrd=/install/initrd.gz -- <enter><wait>"
+      ],
+      "ssh_port": 22
+    },
+    {
+      "iso_url": "file:/Users/greg/proj/boxes/ubuntu-12.04.3-server-amd64/ubuntu-12.04.3-server-amd64.iso",
+      "disk_size": 30720,
+      "type": "vmware",
+      "ssh_username": "vagrant",
+      "boot_wait": "4s",
+      "http_directory": "http",
+      "guest_os_type": "ubuntu-64",
+      "shutdown_command": "echo 'shutdown -P now' > shutdown.sh; echo 'vagrant'|sudo -S sh 'shutdown.sh'",
+      "ssh_wait_timeout": "10000s",
+      "ssh_password": "vagrant",
+      "iso_checksum_type": "md5",
+      "iso_checksum": "2cbe868812a871242cdcdd8f2fd6feb9",
+      "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg <wait>",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us <wait>",
+        "hostname={{ .Name }} <wait>",
+        "fb=false debconf/frontend=noninteractive <wait>",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA keyboard-configuration/variant=USA console-setup/ask_detect=false <wait>",
+        "initrd=/install/initrd.gz -- <enter><wait>"
+      ],
+      "vmx_data": {
+        "memsize": "1024",
+        "numvcpus": "1",
+        "cpuid.coresPerSocket": "1"
+      },
+      "ssh_port": 22,
+      "vm_name": "precise",
+      "tools_upload_flavor": "linux",
+      "tools_upload_path": "/tmp/vmware-tools.iso"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/base.sh",
+        "scripts/vagrant.sh",
+        "scripts/vmfusion.sh",
+        "scripts/cleanup.sh",
+        "scripts/zerodisk.sh"
+      ],
+      "override": {
+        "vmware": {
+          "execute_command": "echo 'vagrant'|sudo -S sh '{{.Path}}'"
+        },
+        "virtualbox": {
+          "execute_command": "echo 'vagrant'|sudo -S sh '{{.Path}}'"
+        }
+      }
+    }
+  ],
+  "post-processors" : [
+    {
+      "type": "vagrant",
+      "keep_input_artifact": true,
+      "output": "ubuntu-12.04.3-server-amd64-{{.Provider}}.box"
+    }
+  ]
+}

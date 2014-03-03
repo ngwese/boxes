@@ -1,0 +1,53 @@
+{
+  "builders": [
+    {
+      "iso_checksum": "4a5fa01c81cc300f4729136e28ebe600",
+      "http_directory": "http",
+      "ssh_wait_timeout": "10000s",
+      "guest_os_type": "rhel6-64",
+      "disk_size": 20480,
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+      ],
+      "vmx_data": {
+        "numvcpus": "1",
+        "memsize": "1024",
+        "cpuid.coresPerSocket": "1"
+      },
+      "iso_url": "file:///Users/greg/Downloads/CentOS-6.4-x86_64-minimal.iso",
+      "ssh_password": "packer",
+      "iso_checksum_type": "md5",
+      "ssh_port": 22,
+      "ssh_username": "packer",
+      "type": "vmware",
+      "shutdown_command": "echo '/sbin/halt -h -p' > shutdown.sh; echo 'packer'|sudo -S sh 'shutdown.sh'",
+      "boot_wait": "10s",
+      "vm_name": "centos-6.4-x86_64",
+      "tools_upload_flavor": "linux",
+      "tools_upload_path": "/tmp/vmware-tools.iso"
+    }
+  ],
+  "provisioners": [
+    {
+      "override": {
+        "vmware": {
+          "execute_command": "echo 'packer'|sudo -S sh '{{.Path}}'"
+        }
+      },
+      "type": "shell",
+      "scripts": [
+        "scripts/base.sh",
+        "scripts/vmware-tools.sh",
+        "scripts/vagrant.sh",
+        "scripts/cleanup.sh"
+      ]
+    }
+  ],
+  "post-processors" : [
+    {
+      "type": "vagrant",
+      "keep_input_artifact": true,
+      "output": "centos-6.4-x86_64-{{.Provider}}.box"
+    }
+  ]
+}
